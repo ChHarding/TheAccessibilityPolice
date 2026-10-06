@@ -46,7 +46,8 @@ def check_page_title(soup):
             "severity": "High",
             "element": str(title) if title else "None",
             "description": "The website doesn't have a title or the title is empty.",
-            "user_impact": "Users may have difficulty identifying the page in search results or browser tabs."
+            "user_impact": "Users may have difficulty identifying the page in search results or browser tabs.",
+            "wcag": "2.4.2"
         })
 
     return issues
@@ -65,7 +66,8 @@ def check_images(soup):
                 "severity": "High",
                 "element": str(img),
                 "description": "An image is missing an alt text attribute.",
-                "user_impact": "Users who rely on screen readers won't know what the image represents."
+                "user_impact": "Users who rely on screen readers won't know what the image represents.",
+                "wcag": "1.1.1"
             })
 
     return issues
@@ -94,7 +96,8 @@ def check_forms(soup):
                     "severity": "High",
                     "element": str(input_field),
                     "description": "A form input is missing an associated label.",
-                    "user_impact": "Users who rely on screen readers might not know what information the form is asking them to enter."
+                    "user_impact": "Users who rely on screen readers might not know what information the form is asking them to enter.",
+                    "wcag": "1.3.1, 3.3.2"
                 })
 
     return issues
@@ -115,7 +118,8 @@ def check_headings(soup):
                 "severity": "Medium",
                 "element": str(heading),
                 "description": "Heading level " + str(current_level) + " follows heading level " + str(previous_level) + ", which may confuse users.",
-                "user_impact": "Users who rely on screen readers might have difficulty understanding the content hierarchy."
+                "user_impact": "Users who rely on screen readers might have difficulty understanding the content hierarchy.",
+                "wcag": "1.3.1"
             })
         previous_level = current_level
 
@@ -138,7 +142,8 @@ def check_links(soup):
                 "severity": "Medium",
                 "element": str(link),
                 "description": "There's a link that exists but has no text content.",
-                "user_impact": "Users who rely on screen readers might not know the purpose of the link."
+                "user_impact": "Users who rely on screen readers might not know the purpose of the link.",
+                "wcag": "2.4.4"
             })
     return issues
 
@@ -154,7 +159,8 @@ def check_language(soup):
             "severity": "Medium",
             "element": str(soup.find('html')),
             "description": "The html tag is missing a 'lang' attribute or it's empty.",
-            "user_impact": "Users who rely on screen readers might not have the correct pronunciation or interpretation of the content."
+            "user_impact": "Users who rely on screen readers might not have the correct pronunciation or interpretation of the content.",
+            "wcag": "3.1.1"
         })
     return issues
 
@@ -227,6 +233,7 @@ def display_results(results):
 
     for issue in results:
         print("[" + str(issue['severity']).upper() + "] " + str(issue['type']))
+        print("WCAG: " + str(issue.get('wcag')))
         print("Element: " + str(issue['element']))
         print("Description: " + str(issue['description']))
         print("User Impact: " + str(issue['user_impact']))
