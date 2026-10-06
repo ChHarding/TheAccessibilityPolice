@@ -13,17 +13,30 @@ from bs4 import BeautifulSoup
 
 def get_webpage(url):
     # Retrieve website
-    response = requests.get(url)
-    response.raise_for_status()
-    return response.text
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return response.text
+    # Handles a few exceptions that I ran into while testing the program. I will add more as I encounter them.
+    except requests.exceptions.SSLError as error:
+        print("SSL error: Unable to securely connect to this website.")
+        print(error)
+        return None
+    except requests.exceptions.HTTPError as error:
+        print("HTTP error: The website refused the request.")
+        print(error)
+        return None
 
 def parse_html(html):
     # Parse HTML with BeautifulSoup
+    
     soup = BeautifulSoup(html, 'html.parser')
     return soup
 
 def check_page_title(soup):
     # Check for a non-empty <title> (WCAG 2.4.2)
+    
     issues = []
     title = soup.find('title')
 
@@ -61,6 +74,7 @@ def check_forms(soup):
     # Find form inputs without labels (WCAG 1.3.1, 3.3.2)
     # Success Criterion 1.3.1: Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.
     # Success Criterion 3.3.2: Labels or instructions are provided when content requires user input.
+    
     forms = soup.find_all("form")
     issues = []
 
@@ -85,6 +99,7 @@ def check_forms(soup):
 def check_headings(soup):
     # Check heading structure (WCAG 1.3.1)
     # Success Criterion 1.3.1: Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.
+    
     headings = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
     issues = []
     previous_level = 0
@@ -106,6 +121,7 @@ def check_headings(soup):
 def check_links(soup):
     # Check for empty or unclear links (WCAG 2.4.4)
     # Success Criterion 2.4.4: The purpose of each link can be determined from the link text alone or from the link text together with its programmatically determined link context, except where the purpose of the link would be ambiguous to users in general.
+    
     links = soup.find_all('a')
     issues = []
     for link in links:
@@ -126,6 +142,7 @@ def check_links(soup):
 def check_language(soup):
     # Check for missing language attribute (WCAG 3.1.1)
     # Success Criterion 3.1.1: The default human language of each web page can be programmatically determined.
+    
     language = soup.find('html').get('lang')
     issues = []
     if language is None or language.strip() == "":
@@ -140,6 +157,7 @@ def check_language(soup):
 
 def analyze_page(soup):
     # Run all accessibility checks and return a list of issues found
+    
     issues = []
     issues.extend(check_page_title(soup))
     issues.extend(check_images(soup))
@@ -152,6 +170,7 @@ def analyze_page(soup):
 
 def display_results(results):
     # Display all findings through the CLI
+    
     print("Accessibility Analysis Results:")
     print("Total Issues Found: " + str(len(results)))
     print("-----")
@@ -166,6 +185,7 @@ def display_results(results):
 
 def get_user_input():
     # Get the website URL from the user
+    
     url = input("Enter the website URL: ")
     return url
 
@@ -175,10 +195,20 @@ def get_user_input():
 # html2 = get_webpage("https://www.google.com/")
 # soup = parse_html(html)
 # soup2 = parse_html(html2)
+
+
+
+# Run the accessibility checker
 url = get_user_input()
 print ("Website entered: " + url)
 html = get_webpage(url)
-soup = parse_html(html)
+
+if html is None:
+    print("Failed to analyze the website.")
+    exit()
+else:
+    soup = parse_html(html)
 
 analysis_results = analyze_page(soup)
+
 display_results(analysis_results)
