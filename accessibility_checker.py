@@ -134,9 +134,13 @@ def check_links(soup):
     for link in links:
         link_text = link.get_text(strip=True)
         aria_label = link.get('aria-label')
+        aria_labelledby = link.get('aria-labelledby')
+        title = link.get('title')
         image = link.find('img')
+        svg = link.find('svg')
+        svg_label = svg.get('aria-label') if svg else None
         image_alt = image.get('alt') if image else None
-        if link_text == "" and (aria_label is None or aria_label.strip() == "") and (image_alt is None or image_alt.strip() == ""):
+        if link_text == "" and (aria_label is None or aria_label.strip() == "") and (aria_labelledby is None or aria_labelledby.strip() == "") and (svg_label is None or svg_label.strip() == "") and (title is None or title.strip() == "") and (image_alt is None or image_alt.strip() == ""):
             issues.append({
                 "type": "Empty link",
                 "severity": "Medium",
@@ -157,8 +161,8 @@ def check_language(soup):
         issues.append({
             "type": "Missing language attribute",
             "severity": "Medium",
-            "element": str(soup.find('html')),
-            "description": "The html tag is missing a 'lang' attribute or it's empty.",
+            "element": "<html>",
+            "description": "The <html> tag is missing a 'lang' attribute or it's empty.",
             "user_impact": "Users who rely on screen readers might not have the correct pronunciation or interpretation of the content.",
             "wcag": "3.1.1"
         })
