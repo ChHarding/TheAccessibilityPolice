@@ -13,9 +13,9 @@ from bs4 import BeautifulSoup
 
 def get_webpage(url):
     # Retrieve website
-    
+
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         response.raise_for_status()
         return response.text
     # Handles a few exceptions that I ran into while testing the program. I will add more as I encounter them.
@@ -83,9 +83,12 @@ def check_forms(soup):
         for input_field in inputs:
             input_id = input_field.get("id")
             input_type = input_field.get("type")
+            aria_label = input_field.get('aria-label')
+            title = input_field.get('title')
+            value = input_field.get('value')
             if input_type == "hidden":
                 continue
-            if not input_id or not form.find("label", {"for": input_id}):
+            if (not input_id or not form.find("label", {"for": input_id})) and not aria_label and not title and not value:
                 issues.append({
                     "type": "Form input without label",
                     "severity": "High",
@@ -172,8 +175,55 @@ def display_results(results):
     # Display all findings through the CLI
     
     print("Accessibility Analysis Results:")
+
+    high = 0
+    medium = 0
+    low = 0
+
+    for issue in results:
+        if issue['severity'].lower() == "high":
+            high += 1
+        elif issue['severity'].lower() == "medium":
+            medium += 1
+        elif issue['severity'].lower() == "low":
+            low += 1
+    print("High Severity Issues: " + str(high))
+    print("Medium Severity Issues: " + str(medium))
+    print("Low Severity Issues: " + str(low))
+    print("-----------------")
     print("Total Issues Found: " + str(len(results)))
-    print("-----")
+    print("====================")
+
+    missing_page_title = 0
+    missing_alt_text = 0
+    missing_form_labels = 0
+    empty_links = 0
+    heading_structure_issues = 0
+    missing_language_attribute = 0
+
+    for issue in results:
+        if issue['type'] == "Missing page title":
+            missing_page_title += 1
+        elif issue['type'] == "Missing alt text":
+            missing_alt_text += 1
+        elif issue['type'] == "Form input without label":
+            missing_form_labels += 1
+        elif issue['type'] == "Empty link":
+            empty_links += 1
+        elif issue['type'] == "Incorrect heading structure":
+            heading_structure_issues += 1
+        elif issue['type'] == "Missing language attribute":
+            missing_language_attribute += 1
+
+    print("Issues by Category")
+    print("-----------------")
+    print("Missing Page Title Issues: " + str(missing_page_title))
+    print("Missing Alt Text Issues: " + str(missing_alt_text))
+    print("Missing Form Label Issues: " + str(missing_form_labels))
+    print("Empty Link Issues: " + str(empty_links))
+    print("Heading Structure Issues: " + str(heading_structure_issues))
+    print("Missing Language Attribute Issues: " + str(missing_language_attribute))
+    print("====================")
 
     for issue in results:
         print("Issue Type: " + str(issue['type']))
@@ -181,12 +231,14 @@ def display_results(results):
         print("Element: " + str(issue['element']))
         print("Description: " + str(issue['description']))
         print("User Impact: " + str(issue['user_impact']))
-        print("-----")
+        print("----------------------")
 
 def get_user_input():
     # Get the website URL from the user
     
     url = input("Enter the website URL: ")
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
     return url
 
 
