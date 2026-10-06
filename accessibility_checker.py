@@ -174,7 +174,8 @@ def analyze_page(soup):
 def display_results(results):
     # Display all findings through the CLI
     
-    print("Accessibility Analysis Results:")
+    print("SUMMARY")
+    print("----------------------------------------------")
 
     high = 0
     medium = 0
@@ -187,12 +188,11 @@ def display_results(results):
             medium += 1
         elif issue['severity'].lower() == "low":
             low += 1
-    print("High Severity Issues: " + str(high))
-    print("Medium Severity Issues: " + str(medium))
-    print("Low Severity Issues: " + str(low))
-    print("-----------------")
-    print("Total Issues Found: " + str(len(results)))
-    print("====================")
+    print("High Severity: " + str(high))
+    print("Medium Severity: " + str(medium))
+    print("Low Severity: " + str(low))
+    print("Total Issues: " + str(len(results)))
+    print()
 
     missing_page_title = 0
     missing_alt_text = 0
@@ -215,23 +215,22 @@ def display_results(results):
         elif issue['type'] == "Missing language attribute":
             missing_language_attribute += 1
 
-    print("Issues by Category")
-    print("-----------------")
-    print("Missing Page Title Issues: " + str(missing_page_title))
-    print("Missing Alt Text Issues: " + str(missing_alt_text))
-    print("Missing Form Label Issues: " + str(missing_form_labels))
-    print("Empty Link Issues: " + str(empty_links))
-    print("Heading Structure Issues: " + str(heading_structure_issues))
-    print("Missing Language Attribute Issues: " + str(missing_language_attribute))
-    print("====================")
+    print("ISSUES BY CATEGORY")
+    print("----------------------------------------------")
+    print("Missing Page Title: " + str(missing_page_title))
+    print("Missing Alt Text: " + str(missing_alt_text))
+    print("Missing Form Label: " + str(missing_form_labels))
+    print("Empty Link: " + str(empty_links))
+    print("Heading Structure: " + str(heading_structure_issues))
+    print("Missing Language Attribute: " + str(missing_language_attribute))
+    print("==============================================")
 
     for issue in results:
-        print("Issue Type: " + str(issue['type']))
-        print("Severity: " + str(issue['severity']))
+        print("[" + str(issue['severity']).upper() + "] " + str(issue['type']))
         print("Element: " + str(issue['element']))
         print("Description: " + str(issue['description']))
         print("User Impact: " + str(issue['user_impact']))
-        print("----------------------")
+        print("---------------------------------")
 
 def get_user_input():
     # Get the website URL from the user
@@ -252,8 +251,14 @@ def get_user_input():
 
 # Run the accessibility checker
 url = get_user_input()
-print ("Website entered: " + url)
 html = get_webpage(url)
+print("==============================================")
+print("        ACCESSIBILITY ANALYSIS RESULTS")
+print("==============================================")
+print()
+print("Website: " + url)
+print()
+
 
 if html is None:
     print("Failed to analyze the website.")
