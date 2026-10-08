@@ -13,7 +13,9 @@ from bs4 import BeautifulSoup
 
 def get_webpage(url):
     # Retrieve website
-
+    url = url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
@@ -194,7 +196,6 @@ def summarize_results(results):
         elif issue['severity'].lower() == "low":
             low += 1
    
-
     missing_page_title = 0
     missing_alt_text = 0
     missing_form_labels = 0
@@ -248,10 +249,11 @@ def display_results(results):
     print("Missing Alt Text: " + str(summary["missing_alt_text"]))
     print("Missing Form Label: " + str(summary["missing_form_labels"]))
     print("Empty Link: " + str(summary["empty_links"]))
-    print("Heading Structure: " + str(summary["heading_structure_issues"]))
+    print("Improper Heading Structure: " + str(summary["heading_structure_issues"]))
     print("Missing Language Attribute: " + str(summary["missing_language_attribute"]))
     print("==============================================")
 
+    print("DETAILED ISSUES")
     for issue in results:
         print("[" + str(issue['severity']).upper() + "] " + str(issue['type']))
         print("WCAG: " + str(issue.get('wcag')))
@@ -264,8 +266,7 @@ def get_user_input():
     # Get the website URL from the user
     
     url = input("Enter the website URL: ")
-    if not url.startswith("http://") and not url.startswith("https://"):
-        url = "https://" + url
+    
     return url
 
 
