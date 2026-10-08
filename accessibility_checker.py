@@ -181,12 +181,7 @@ def analyze_page(soup):
     
     return issues
 
-def display_results(results):
-    # Display all findings through the CLI
-    
-    print("SUMMARY")
-    print("----------------------------------------------")
-
+def summarize_results(results):
     high = 0
     medium = 0
     low = 0
@@ -198,11 +193,7 @@ def display_results(results):
             medium += 1
         elif issue['severity'].lower() == "low":
             low += 1
-    print("High Severity: " + str(high))
-    print("Medium Severity: " + str(medium))
-    print("Low Severity: " + str(low))
-    print("Total Issues: " + str(len(results)))
-    print()
+   
 
     missing_page_title = 0
     missing_alt_text = 0
@@ -225,14 +216,40 @@ def display_results(results):
         elif issue['type'] == "Missing language attribute":
             missing_language_attribute += 1
 
+    return {
+        "high": high,
+        "medium": medium,
+        "low": low,
+        "total": len(results),
+        "missing_page_title": missing_page_title,
+        "missing_alt_text": missing_alt_text,
+        "missing_form_labels": missing_form_labels,
+        "empty_links": empty_links,
+        "heading_structure_issues": heading_structure_issues,
+        "missing_language_attribute": missing_language_attribute
+    }
+
+def display_results(results):
+    # Display all findings through the CLI
+    summary = summarize_results(results)
+
+    print("SUMMARY")
+    print("----------------------------------------------")
+
+    print("High Severity: " + str(summary["high"]))
+    print("Medium Severity: " + str(summary["medium"]))
+    print("Low Severity: " + str(summary["low"]))
+    print("Total Issues: " + str(summary["total"]))
+    print()
+
     print("ISSUES BY CATEGORY")
     print("----------------------------------------------")
-    print("Missing Page Title: " + str(missing_page_title))
-    print("Missing Alt Text: " + str(missing_alt_text))
-    print("Missing Form Label: " + str(missing_form_labels))
-    print("Empty Link: " + str(empty_links))
-    print("Heading Structure: " + str(heading_structure_issues))
-    print("Missing Language Attribute: " + str(missing_language_attribute))
+    print("Missing Page Title: " + str(summary["missing_page_title"]))
+    print("Missing Alt Text: " + str(summary["missing_alt_text"]))
+    print("Missing Form Label: " + str(summary["missing_form_labels"]))
+    print("Empty Link: " + str(summary["empty_links"]))
+    print("Heading Structure: " + str(summary["heading_structure_issues"]))
+    print("Missing Language Attribute: " + str(summary["missing_language_attribute"]))
     print("==============================================")
 
     for issue in results:
@@ -259,24 +276,22 @@ def get_user_input():
 # soup2 = parse_html(html2)
 
 
+if __name__ == "__main__":
+    # Run the accessibility checker
+    url = get_user_input()
+    html = get_webpage(url)
+    print("==============================================")
+    print("        ACCESSIBILITY ANALYSIS RESULTS")
+    print("==============================================")
+    print()
+    print("Website: " + url)
+    print()
 
-# Run the accessibility checker
-url = get_user_input()
-html = get_webpage(url)
-print("==============================================")
-print("        ACCESSIBILITY ANALYSIS RESULTS")
-print("==============================================")
-print()
-print("Website: " + url)
-print()
+    if html is None:
+        print("Failed to analyze the website.")
+        exit()
+    else:
+        soup = parse_html(html)
 
-
-if html is None:
-    print("Failed to analyze the website.")
-    exit()
-else:
-    soup = parse_html(html)
-
-analysis_results = analyze_page(soup)
-
-display_results(analysis_results)
+    analysis_results = analyze_page(soup)
+    display_results(analysis_results)
