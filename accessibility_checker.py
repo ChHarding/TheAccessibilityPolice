@@ -13,9 +13,11 @@ from bs4 import BeautifulSoup
 
 def get_webpage(url):
     # Retrieve website
-    
+    url = url.strip()
+    if not url.startswith("http://") and not url.startswith("https://"):
+        url = "https://" + url
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         response.raise_for_status()
         return response.text
     # Handles a few exceptions that I ran into while testing the program. I will add more as I encounter them.
@@ -46,7 +48,8 @@ def check_page_title(soup):
             "severity": "High",
             "element": str(title) if title else "None",
             "description": "The website doesn't have a title or the title is empty.",
-            "user_impact": "Users may have difficulty identifying the page in search results or browser tabs."
+            "user_impact": "Users may have difficulty identifying the page in search results or browser tabs.",
+            "wcag": "2.4.2"
         })
 
     return issues
@@ -65,7 +68,8 @@ def check_images(soup):
                 "severity": "High",
                 "element": str(img),
                 "description": "An image is missing an alt text attribute.",
-                "user_impact": "Users who rely on screen readers won't know what the image represents."
+                "user_impact": "Users who rely on screen readers won't know what the image represents.",
+                "wcag": "1.1.1"
             })
 
     return issues
@@ -83,15 +87,19 @@ def check_forms(soup):
         for input_field in inputs:
             input_id = input_field.get("id")
             input_type = input_field.get("type")
+            aria_label = input_field.get('aria-label')
+            title = input_field.get('title')
+            value = input_field.get('value')
             if input_type == "hidden":
                 continue
-            if not input_id or not form.find("label", {"for": input_id}):
+            if (not input_id or not form.find("label", {"for": input_id})) and not aria_label and not title and not value:
                 issues.append({
                     "type": "Form input without label",
                     "severity": "High",
                     "element": str(input_field),
                     "description": "A form input is missing an associated label.",
-                    "user_impact": "Users who rely on screen readers might not know what information the form is asking them to enter."
+                    "user_impact": "Users who rely on screen readers might not know what information the form is asking them to enter.",
+                    "wcag": "1.3.1, 3.3.2"
                 })
 
     return issues
@@ -112,7 +120,8 @@ def check_headings(soup):
                 "severity": "Medium",
                 "element": str(heading),
                 "description": "Heading level " + str(current_level) + " follows heading level " + str(previous_level) + ", which may confuse users.",
-                "user_impact": "Users who rely on screen readers might have difficulty understanding the content hierarchy."
+                "user_impact": "Users who rely on screen readers might have difficulty understanding the content hierarchy.",
+                "wcag": "1.3.1"
             })
         previous_level = current_level
 
@@ -127,15 +136,20 @@ def check_links(soup):
     for link in links:
         link_text = link.get_text(strip=True)
         aria_label = link.get('aria-label')
+        aria_labelledby = link.get('aria-labelledby')
+        title = link.get('title')
         image = link.find('img')
+        svg = link.find('svg')
+        svg_label = svg.get('aria-label') if svg else None
         image_alt = image.get('alt') if image else None
-        if link_text == "" and (aria_label is None or aria_label.strip() == "") and (image_alt is None or image_alt.strip() == ""):
+        if link_text == "" and (aria_label is None or aria_label.strip() == "") and (aria_labelledby is None or aria_labelledby.strip() == "") and (svg_label is None or svg_label.strip() == "") and (title is None or title.strip() == "") and (image_alt is None or image_alt.strip() == ""):
             issues.append({
                 "type": "Empty link",
                 "severity": "Medium",
                 "element": str(link),
                 "description": "There's a link that exists but has no text content.",
-                "user_impact": "Users who rely on screen readers might not know the purpose of the link."
+                "user_impact": "Users who rely on screen readers might not know the purpose of the link.",
+                "wcag": "2.4.4"
             })
     return issues
 
@@ -149,9 +163,10 @@ def check_language(soup):
         issues.append({
             "type": "Missing language attribute",
             "severity": "Medium",
-            "element": str(soup.find('html')),
-            "description": "The html tag is missing a 'lang' attribute or it's empty.",
-            "user_impact": "Users who rely on screen readers might not have the correct pronunciation or interpretation of the content."
+            "element": "<html>",
+            "description": "The <html> tag is missing a 'lang' attribute or it's empty.",
+            "user_impact": "Users who rely on screen readers might not have the correct pronunciation or interpretation of the content.",
+            "wcag": "3.1.1"
         })
     return issues
 
@@ -168,25 +183,94 @@ def analyze_page(soup):
     
     return issues
 
-def display_results(results):
-    # Display all findings through the CLI
-    
-    print("Accessibility Analysis Results:")
-    print("Total Issues Found: " + str(len(results)))
-    print("-----")
+def summarize_results(results):
+    high = 0
+    medium = 0
+    low = 0
 
     for issue in results:
-        print("Issue Type: " + str(issue['type']))
-        print("Severity: " + str(issue['severity']))
-        print("Element: " + str(issue['element']))
-        print("Description: " + str(issue['description']))
-        print("User Impact: " + str(issue['user_impact']))
-        print("-----")
+        if issue['severity'].lower() == "high":
+            high += 1
+        elif issue['severity'].lower() == "medium":
+            medium += 1
+        elif issue['severity'].lower() == "low":
+            low += 1
+   
+    missing_page_title = 0
+    missing_alt_text = 0
+    missing_form_labels = 0
+    empty_links = 0
+    heading_structure_issues = 0
+    missing_language_attribute = 0
+
+    for issue in results:
+        if issue['type'] == "Missing page title":
+            missing_page_title += 1
+        elif issue['type'] == "Missing alt text":
+            missing_alt_text += 1
+        elif issue['type'] == "Form input without label":
+            missing_form_labels += 1
+        elif issue['type'] == "Empty link":
+            empty_links += 1
+        elif issue['type'] == "Incorrect heading structure":
+            heading_structure_issues += 1
+        elif issue['type'] == "Missing language attribute":
+            missing_language_attribute += 1
+
+    return {
+        "high": high,
+        "medium": medium,
+        "low": low,
+        "total": len(results),
+        "missing_page_title": missing_page_title,
+        "missing_alt_text": missing_alt_text,
+        "missing_form_labels": missing_form_labels,
+        "empty_links": empty_links,
+        "heading_structure_issues": heading_structure_issues,
+        "missing_language_attribute": missing_language_attribute
+    }
+
+def display_results(results):
+    # Display all findings through the CLI
+    summary = summarize_results(results)
+
+    print("SUMMARY")
+    print("----------------------------------------------")
+
+    print("High Severity: " + str(summary["high"]))
+    print("Medium Severity: " + str(summary["medium"]))
+    print("Low Severity: " + str(summary["low"]))
+    print("Total Issues: " + str(summary["total"]))
+    print()
+
+    print("ISSUES BY CATEGORY")
+    print("----------------------------------------------")
+    print("Missing Page Title: " + str(summary["missing_page_title"]))
+    print("Missing Alt Text: " + str(summary["missing_alt_text"]))
+    print("Missing Form Label: " + str(summary["missing_form_labels"]))
+    print("Empty Link: " + str(summary["empty_links"]))
+    print("Improper Heading Structure: " + str(summary["heading_structure_issues"]))
+    print("Missing Language Attribute: " + str(summary["missing_language_attribute"]))
+    print("==============================================")
+
+    
+    if len(results) == 0:
+        print("No accessibility issues found.")
+    else:
+        print("DETAILED ISSUES")
+        for issue in results:
+            print("[" + str(issue['severity']).upper() + "] " + str(issue['type']))
+            print("WCAG: " + str(issue['wcag']))
+            print("Element: " + str(issue['element']))
+            print("Description: " + str(issue['description']))
+            print("User Impact: " + str(issue['user_impact']))
+            print("---------------------------------")
 
 def get_user_input():
     # Get the website URL from the user
     
     url = input("Enter the website URL: ")
+    
     return url
 
 
@@ -197,18 +281,22 @@ def get_user_input():
 # soup2 = parse_html(html2)
 
 
+if __name__ == "__main__":
+    # Run the accessibility checker
+    url = get_user_input()
+    html = get_webpage(url)
+    print("==============================================")
+    print("        ACCESSIBILITY ANALYSIS RESULTS")
+    print("==============================================")
+    print()
+    print("Website: " + url)
+    print()
 
-# Run the accessibility checker
-url = get_user_input()
-print ("Website entered: " + url)
-html = get_webpage(url)
+    if html is None:
+        print("Failed to analyze the website.")
+        exit()
+    else:
+        soup = parse_html(html)
 
-if html is None:
-    print("Failed to analyze the website.")
-    exit()
-else:
-    soup = parse_html(html)
-
-analysis_results = analyze_page(soup)
-
-display_results(analysis_results)
+    analysis_results = analyze_page(soup)
+    display_results(analysis_results)
