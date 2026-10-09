@@ -67,9 +67,9 @@ if st.button("Analyze Website"):
 
         for issue in results:
             st.write("[" + issue['severity'].upper() + "] " + issue['type'])
-            st.write("WCAG: " + issue.get('wcag'))
-            st.write("Description: " + issue.get('description'))
-            st.write("Element: " + issue.get('element'))
+            st.write("WCAG: " + issue['wcag'])
+            st.write("Description: " + issue['description'])
+            st.write("Element: " + issue['element'])
             st.write("User Impact: " + issue['user_impact'])
             st.divider()
 
