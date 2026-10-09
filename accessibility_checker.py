@@ -253,14 +253,18 @@ def display_results(results):
     print("Missing Language Attribute: " + str(summary["missing_language_attribute"]))
     print("==============================================")
 
-    print("DETAILED ISSUES")
-    for issue in results:
-        print("[" + str(issue['severity']).upper() + "] " + str(issue['type']))
-        print("WCAG: " + str(issue.get('wcag')))
-        print("Element: " + str(issue['element']))
-        print("Description: " + str(issue['description']))
-        print("User Impact: " + str(issue['user_impact']))
-        print("---------------------------------")
+    
+    if len(results) == 0:
+        print("No accessibility issues found.")
+    else:
+        print("DETAILED ISSUES")
+        for issue in results:
+            print("[" + str(issue['severity']).upper() + "] " + str(issue['type']))
+            print("WCAG: " + str(issue['wcag']))
+            print("Element: " + str(issue['element']))
+            print("Description: " + str(issue['description']))
+            print("User Impact: " + str(issue['user_impact']))
+            print("---------------------------------")
 
 def get_user_input():
     # Get the website URL from the user
