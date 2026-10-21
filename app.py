@@ -9,18 +9,12 @@ st.markdown("""
 [data-testid="stMetric"] {
     text-align: center;
     }
-
+    
 [data-testid="stAlert"] {
     text-align: center;
+    margin-bottom: -20px;
     }
 
-[data-testid="stMetricValue"] {
-    margin-top: -10px;
-    }
-
-[data-testid="stMetricLabel"] {
-    margin-bottom: -10px;
-    }
 </style>
 """, unsafe_allow_html=True
 )
@@ -56,13 +50,25 @@ if st.button("Analyze Website"):
             st.metric("", summary['total'])
 
         st.subheader("ISSUES BY CATEGORY")
-        st.write("Missing Page Title:", summary['missing_page_title'])
-        st.write("Missing Alt Text:", summary['missing_alt_text'])
-        st.write("Missing Form Label:", summary['missing_form_labels'])
-        st.write("Empty Link:", summary['empty_links'])
-        st.write("Improper Heading Structure:", summary['heading_structure_issues'])
-        st.write("Missing Language Attribute:", summary['missing_language_attribute'])
-        st.write("Empty Headings:", summary['empty_headings'])
+
+        categories = [
+            ("Missing Page Title", summary['missing_page_title'], "description"),
+            ("Missing Alt Text", summary['missing_alt_text'], "image"),
+            ("Missing Form Label", summary['missing_form_labels'], "label"),
+            ("Empty Link", summary['empty_links'], "link_2"),
+            ("Improper Heading Structure", summary['heading_structure_issues'], "format_list_numbered"),
+            ("Missing Language Attribute", summary['missing_language_attribute'], "translate"),
+            ("Empty Headings", summary['empty_headings'], "format_h1"),
+        ]
+
+        for start in range(0, len(categories), 2):
+            cols = st.columns(2)
+
+            for col, (category_name, count, icon) in zip(cols, categories[start:start + 2]):
+                with col:
+                    with st.container(border=True):
+                        st.markdown(":material/" + icon + ":")
+                        st.metric(category_name, count)
 
         st.subheader("DETAILED ISSUES")
 
