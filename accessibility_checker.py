@@ -9,6 +9,7 @@
 
 import requests
 from bs4 import BeautifulSoup
+from fast_a11y import fast_a11y
 
 
 def get_webpage(url):
@@ -170,6 +171,37 @@ def check_language(soup):
         })
     return issues
 
+def check_empty_headings(soup):
+    # Check for empty headings (WCAG 1.3.1)
+    # Success Criterion 1.3.1: Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.
+    
+    headings = soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+    issues = []
+
+    for heading in headings:
+        if heading.get_text(strip=True):
+            continue
+
+        has_image_alt = False
+        for img in heading.find_all('img'):
+            if img.get('alt', '').strip():
+                has_image_alt = True
+                break
+        if has_image_alt:
+            continue
+        if heading.get('aria-label', '').strip() or heading.get('aria-labelledby', '').strip():
+            continue
+
+        issues.append({
+            "type": "Empty heading",
+            "severity": "Low",
+            "element": str(heading),
+            "description": "A heading tag is present but has no text content.",
+            "user_impact": "Users who rely on screen readers might have difficulty understanding the content hierarchy.",
+            "wcag": "1.3.1"
+        })
+    return issues
+
 def analyze_page(soup):
     # Run all accessibility checks and return a list of issues found
     
@@ -180,7 +212,7 @@ def analyze_page(soup):
     issues.extend(check_headings(soup))
     issues.extend(check_links(soup))
     issues.extend(check_language(soup))
-    
+    issues.extend(check_empty_headings(soup))
     return issues
 
 def summarize_results(results):
@@ -202,6 +234,7 @@ def summarize_results(results):
     empty_links = 0
     heading_structure_issues = 0
     missing_language_attribute = 0
+    empty_headings = 0
 
     for issue in results:
         if issue['type'] == "Missing page title":
@@ -212,6 +245,8 @@ def summarize_results(results):
             missing_form_labels += 1
         elif issue['type'] == "Empty link":
             empty_links += 1
+        elif issue['type'] == "Empty heading":
+            empty_headings += 1
         elif issue['type'] == "Incorrect heading structure":
             heading_structure_issues += 1
         elif issue['type'] == "Missing language attribute":
@@ -227,7 +262,8 @@ def summarize_results(results):
         "missing_form_labels": missing_form_labels,
         "empty_links": empty_links,
         "heading_structure_issues": heading_structure_issues,
-        "missing_language_attribute": missing_language_attribute
+        "missing_language_attribute": missing_language_attribute,
+        "empty_headings": empty_headings
     }
 
 def display_results(results):
@@ -251,6 +287,7 @@ def display_results(results):
     print("Empty Link: " + str(summary["empty_links"]))
     print("Improper Heading Structure: " + str(summary["heading_structure_issues"]))
     print("Missing Language Attribute: " + str(summary["missing_language_attribute"]))
+    print("Empty Headings: " + str(summary["empty_headings"]))
     print("==============================================")
 
     
@@ -276,9 +313,7 @@ def get_user_input():
 
 # Testing
 # html = get_webpage("https://beautiful-soup-4.readthedocs.io/en/latest/")
-# html2 = get_webpage("https://www.google.com/")
 # soup = parse_html(html)
-# soup2 = parse_html(html2)
 
 
 if __name__ == "__main__":
@@ -300,3 +335,7 @@ if __name__ == "__main__":
 
     analysis_results = analyze_page(soup)
     display_results(analysis_results)
+
+    # Testing fast_a11y
+    # fast_a11y_results = fast_a11y(html)
+    # print(fast_a11y_results["violations"])

@@ -62,6 +62,7 @@ if st.button("Analyze Website"):
         st.write("Empty Link:", summary['empty_links'])
         st.write("Improper Heading Structure:", summary['heading_structure_issues'])
         st.write("Missing Language Attribute:", summary['missing_language_attribute'])
+        st.write("Empty Headings:", summary['empty_headings'])
 
         st.subheader("DETAILED ISSUES")
 
