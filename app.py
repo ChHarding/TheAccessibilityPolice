@@ -74,7 +74,13 @@ if st.button("Analyze Website"):
         st.subheader("DETAILED ISSUES")
 
         for issue in results:
-            st.write("[" + issue['severity'].upper() + "] " + issue['type'])
+            if issue['severity'].lower() == "high":
+                st.badge(issue['severity'].upper(), color="red")
+            elif issue['severity'].lower() == "medium":
+                st.badge(issue['severity'].upper(), color="yellow")
+            elif issue['severity'].lower() == "low":
+                st.badge(issue['severity'].upper(), color="green")
+            st.write(issue['type'])
             st.write("WCAG: " + issue['wcag'])
             st.write("Description: " + issue['description'])
             st.write("Element: " + issue['element'])
