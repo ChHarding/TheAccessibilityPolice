@@ -59,6 +59,7 @@ if st.button("Analyze Website"):
             ("Improper Heading Structure", summary['heading_structure_issues'], "format_list_numbered"),
             ("Missing Language Attribute", summary['missing_language_attribute'], "translate"),
             ("Empty Headings", summary['empty_headings'], "format_h1"),
+            ("Empty Buttons", summary['empty_buttons'], "left_click"),
         ]
 
         for start in range(0, len(categories), 2):
