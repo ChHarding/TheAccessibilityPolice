@@ -47,7 +47,7 @@ def check_page_title(soup):
         issues.append({
             "type": "Missing page title",
             "severity": "High",
-            "element": str(title) if title else "None",
+            "element": str(title) if title else "No specific HTML element found",
             "description": "The website doesn't have a title or the title is empty.",
             "user_impact": "Users may have difficulty identifying the page in search results or browser tabs.",
             "wcag": "2.4.2"
