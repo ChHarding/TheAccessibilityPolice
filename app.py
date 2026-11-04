@@ -3,6 +3,47 @@ import accessibility_checker
 
 st.markdown("""
 <style>
+.stApp {
+    background-color: #F1F5F9;
+}
+.jumbotron {
+    background-color: #172554;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    margin-bottom: 2rem;
+    }
+.jumbotron-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 0;
+    color: #ffffff;
+    }
+.subtitle {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #ffffff;
+    }
+
+.st-key-url-container {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    }
+
+.stButton > button {
+    background-color: #2563EB;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+}
+
+.stButton > button:hover {
+    background-color: #1D4ED8;
+    color: #ffffff;
+    border: none;
+}
+    
 [data-testid="column"] {
     text-align: center;
     }
@@ -20,17 +61,32 @@ st.markdown("""
 )
 
 
-st.title("The Accessibility Police")
-st.write("An Automated Website Accessibility Checker")
+st.markdown("""
+<div class="jumbotron">
+    <div class="jumbotron-title">The Accessibility Police</div>
+    <div class="subtitle">AN AUTOMATED WEBSITE ACCESSIBILITY CHECKER</div>
+</div>
+""", unsafe_allow_html=True)
 
-url = st.text_input("Enter a website URL: ")
 
-if st.button("Analyze Website"):
+
+with st.container(border=True, key="url-container"):
+    st.markdown("Enter a website URL:")
+    url = st.text_input("Website URL", placeholder="https://example.com", label_visibility="collapsed", key="url_input")
+
+
+    analyze = st.button(
+        ":material/search: Analyze Website",
+        use_container_width=True
+)
+
+if analyze:
     html = accessibility_checker.get_webpage(url)
     soup = accessibility_checker.parse_html(html)
     results = accessibility_checker.analyze_page(soup)
 
     if results:
+        st.divider()
         st.subheader("ISSUES SUMMARY")
 
         summary = accessibility_checker.summarize_results(results)
@@ -48,6 +104,8 @@ if st.button("Analyze Website"):
         with col4:
             st.info("Total Issues")
             st.metric("", summary['total'])
+
+        st.divider()
 
         st.subheader("ISSUES BY CATEGORY")
 
@@ -71,22 +129,46 @@ if st.button("Analyze Website"):
                         st.markdown(":material/" + icon + ":")
                         st.metric(category_name, count)
 
+        st.divider()
+
         st.subheader("DETAILED ISSUES")
 
         for issue in results:
-            if issue['severity'].lower() == "high":
-                st.badge(issue['severity'].upper(), color="red")
-            elif issue['severity'].lower() == "medium":
-                st.badge(issue['severity'].upper(), color="yellow")
-            elif issue['severity'].lower() == "low":
-                st.badge(issue['severity'].upper(), color="green")
-            st.write(issue['type'])
-            st.write("WCAG: " + issue['wcag'])
-            st.write("Description: " + issue['description'])
-            st.write("Element: " + issue['element'])
-            st.write("User Impact: " + issue['user_impact'])
-            st.divider()
+            with st.container(border=True, gap="small"):
+                col1, col2 = st.columns([9, 1])
 
+                with col1:
+                    st.markdown("**" + issue['type'] + "**")
+                with col2:
+                    if issue['severity'].lower() == "high":
+                        st.badge(issue['severity'].upper(), color="red")
+                    elif issue['severity'].lower() == "medium":
+                        st.badge(issue['severity'].upper(), color="yellow")
+                    elif issue['severity'].lower() == "low":
+                        st.badge(issue['severity'].upper(), color="green")
+
+                st.caption("WCAG: " + issue['wcag'])
+
+                st.markdown(
+                    """
+                    <div style="
+                        border-top: 1px solid #d1d5db;
+                        margin-top: 2px;
+                        margin-bottom: 10px;
+                        width: 100%;
+                    "></div>
+                    """,
+                    unsafe_allow_html=True
+                )
+                
+                st.markdown("**Description:**")
+                st.write(issue['description'])
+
+                st.markdown("**Element:**")
+                st.code(issue['element'], language='html')
+
+                st.markdown("**User Impact:**")
+                st.write(issue['user_impact'])
         
     else:
         st.write("No accessibility issues found.")
