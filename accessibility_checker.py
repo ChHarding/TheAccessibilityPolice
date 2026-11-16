@@ -12,6 +12,17 @@ from bs4 import BeautifulSoup
 from fast_a11y import fast_a11y
 
 
+# Some sites reject the default python-requests User-Agent
+REQUEST_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+}
+
+
 def get_webpage(url):
     # Retrieve website
     url = url.strip()
@@ -30,7 +41,11 @@ def get_webpage(url):
         print("HTTP error: The website refused the request.")
         print(error)
         return None
-
+    except requests.exceptions.RequestException as error:
+            print("Request error: Unable to retrieve this website.")
+            print(error)
+            return None
+    
 def parse_html(html):
     # Parse HTML with BeautifulSoup
     

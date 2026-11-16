@@ -82,6 +82,12 @@ with st.container(border=True, key="url-container"):
 
 if analyze:
     html = accessibility_checker.get_webpage(url)
+
+    if html is None:
+        st.error("Could not retrieve that website. It may use bot protection (e.g. Cloudflare) "
+                    "that blocks automated requests, have a certificate problem, or the URL may be incorrect.")
+        st.stop()
+
     soup = accessibility_checker.parse_html(html)
     results = accessibility_checker.analyze_page(soup)
 
