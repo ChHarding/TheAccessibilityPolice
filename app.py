@@ -1,5 +1,12 @@
 import streamlit as st
 import accessibility_checker
+import html as html_module
+
+st.set_page_config(
+    page_title="The Accessibility Police",
+    page_icon="🔍",
+    layout="wide"
+)
 
 st.markdown("""
 <style>
@@ -24,7 +31,8 @@ st.markdown("""
     color: #ffffff;
     }
 
-.st-key-url-container {
+.st-key-url-container,
+.st-key-issue-container {
     background-color: #ffffff;
     padding: 1rem;
     border-radius: 0.5rem;
@@ -44,12 +52,92 @@ st.markdown("""
     border: none;
 }
     
+.filter-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #172554;
+}
+
+.issue-card {
+    background-color: white;
+    border: 1px solid #dce2ed;
+    border-left: 3px solid #ff4b4b;
+    border-radius: 13px;
+    padding: 20px;
+    margin-bottom: 12px;
+    color: #172b4d;
+}
+
+.issue-card.medium {
+    border-left-color: #e6a23c;
+}
+
+.issue-card.low {
+    border-left-color: #16a36a;
+}
+
+.issue-heading {
+    color: #172554;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.issue-icon {
+    background-color: #f3f5fa;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 17px;
+}
+
+.severity {
+    font-size: .8rem;
+    padding: 4px 8px;
+    border-radius: 20px;
+    background-color: #fff0f0;
+    color: #d93636;
+    font-weight: 700;
+}
+
+.severity.medium {
+    background-color: #fff5e5;
+    color: #b7791f;
+}
+
+.severity.low {
+    background-color: #e8f7ef;
+    color: #16834f;
+}
+
+.issue-description {
+    color: #64748b;
+    font-size: 1.1rem;
+    margin-left: 50px;
+    margin-bottom: 15px;
+}
+
+.issue-code {
+    background-color: #f3f5f9;
+    color: #344c78;
+    border-radius: 8px;
+    padding: 10px;
+    margin-left: 50px;
+    font-family: monospace;
+    font-size: 11px;
+    overflow-wrap: anywhere;
+}
+
+[data-testid="stVerticalBlock"] {
+    gap: 0.7rem;
+}
+
 [data-testid="column"] {
     text-align: center;
     }
-[data-testid="stMetric"] {
-    text-align: center;
-    }
+
     
 [data-testid="stAlert"] {
     text-align: center;
@@ -67,7 +155,6 @@ st.markdown("""
     <div class="subtitle">AN AUTOMATED WEBSITE ACCESSIBILITY CHECKER</div>
 </div>
 """, unsafe_allow_html=True)
-
 
 
 with st.container(border=True, key="url-container"):
@@ -91,91 +178,108 @@ if analyze:
     soup = accessibility_checker.parse_html(html)
     results = accessibility_checker.analyze_page(soup)
 
-    if results:
-        st.divider()
-        st.subheader("ISSUES SUMMARY")
-
-        summary = accessibility_checker.summarize_results(results)
-
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            st.error("High Severity")
-            st.metric("",summary['high'])
-        with col2:
-            st.warning("Medium Severity")
-            st.metric("",summary['medium'])
-        with col3:
-            st.success("Low Severity")
-            st.metric("", summary['low'])
-        with col4:
-            st.info("Total Issues")
-            st.metric("", summary['total'])
-
-        st.divider()
-
-        st.subheader("ISSUES BY CATEGORY")
-
-        categories = [
-            ("Missing Page Title", summary['missing_page_title'], "description"),
-            ("Missing Alt Text", summary['missing_alt_text'], "image"),
-            ("Missing Form Label", summary['missing_form_labels'], "label"),
-            ("Empty Link", summary['empty_links'], "link_2"),
-            ("Improper Heading Structure", summary['heading_structure_issues'], "format_list_numbered"),
-            ("Missing Language Attribute", summary['missing_language_attribute'], "translate"),
-            ("Empty Headings", summary['empty_headings'], "format_h1"),
-            ("Empty Buttons", summary['empty_buttons'], "left_click"),
-        ]
-
-        for start in range(0, len(categories), 2):
-            cols = st.columns(2)
-
-            for col, (category_name, count, icon) in zip(cols, categories[start:start + 2]):
-                with col:
-                    with st.container(border=True):
-                        st.markdown(":material/" + icon + ":")
-                        st.metric(category_name, count)
-
-        st.divider()
-
-        st.subheader("DETAILED ISSUES")
-
-        for issue in results:
-            with st.container(border=True, gap="small"):
-                col1, col2 = st.columns([9, 1])
-
-                with col1:
-                    st.markdown("**" + issue['type'] + "**")
-                with col2:
-                    if issue['severity'].lower() == "high":
-                        st.badge(issue['severity'].upper(), color="red")
-                    elif issue['severity'].lower() == "medium":
-                        st.badge(issue['severity'].upper(), color="yellow")
-                    elif issue['severity'].lower() == "low":
-                        st.badge(issue['severity'].upper(), color="green")
-
-                st.caption("WCAG: " + issue['wcag'])
-
-                st.markdown(
-                    """
-                    <div style="
-                        border-top: 1px solid #d1d5db;
-                        margin-top: 2px;
-                        margin-bottom: 10px;
-                        width: 100%;
-                    "></div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                
-                st.markdown("**Description:**")
-                st.write(issue['description'])
-
-                st.markdown("**Element:**")
-                st.code(issue['element'], language='html')
-
-                st.markdown("**User Impact:**")
-                st.write(issue['user_impact'])
         
-    else:
-        st.write("No accessibility issues found.")
+    categories = [
+        "Missing page title",
+        "Missing alt text",
+        "Form input without label",
+        "Empty link",
+        "Incorrect heading structure",
+        "Missing language attribute",
+        "Empty heading",
+        "Empty button"
+    ]   
+
+    issue_icons = {
+        "Missing page title": "📃",
+        "Missing alt text": "🖼️",
+        "Form input without label": "🏷️",
+        "Empty link": "🔗",
+        "Incorrect heading structure": "📑",
+        "Missing language attribute": "🌐",
+        "Empty heading": "📝",
+        "Empty button": "🔘"
+    }
+
+    counts = {}
+    for category in categories:
+        count = 0
+        for issue in results:
+            if issue["type"] == category:
+                count += 1
+        counts[category] = count
+
+    sidebar, main = st.columns([1, 4])
+
+    with sidebar:
+        with st.container(border=True, key="issue-container"):
+            st.markdown(
+                '<div class="filter-title">ISSUES BY TYPE</div>',
+                unsafe_allow_html=True
+            )
+
+            for category in categories:
+                count = counts[category]
+
+                st.markdown(f"""
+                    <div style="
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 10px;
+                        font-size: 0.8rem;
+                        gap: 8px;
+                    ">
+                        <span>{category}</span>
+                        <span style="
+                            background-color: #f1f5f9;
+                            border-radius: 20px;
+                            padding: 5px;
+                            font-weight: 600;
+                        ">{count}</span>
+                    </div>
+                """, unsafe_allow_html=True)
+
+    with main:
+        if results:
+            for issue in results:
+
+                severity = issue["severity"].lower()
+
+                issue_type = issue["type"]
+                description = issue["description"]
+                element = html_module.escape(issue["element"])
+                wcag = issue["wcag"]
+                user_impact = issue["user_impact"]
+                issue_icon = issue_icons[issue_type]
+
+                issue_card = f"""
+                <div class="issue-card {severity}">
+                <div class="issue-heading">
+                    <span class="issue-icon">{issue_icon}</span>
+                    <span>{issue_type}</span>
+                    <span class="severity {severity}">{severity.upper()}</span>
+                </div>
+
+                <div class="issue-description">
+                    {description}
+                </div>
+
+                <div class="issue-code">
+                    {element}
+                </div>
+
+                <div class="issue-description" style="margin-top: 15px;">
+                    <strong>WCAG:</strong> {wcag}
+                </div>
+
+                <div class="issue-description">
+                    <strong>User Impact:</strong> {user_impact}
+                </div>
+                </div>
+                """
+                st.markdown(issue_card, unsafe_allow_html=True)
+
+        else:
+            st.info("No accessibility issues found.")
 
