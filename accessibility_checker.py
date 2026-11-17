@@ -4,8 +4,8 @@
 # This program analyzes a website's HTML to identify common accessibility issues
 # based on selected WCAG guidelines. It checks for issues like missing page titles, 
 # missing language information, missing image alt text, forms without labels, unclear
-# links, and problematic heading structures. The program explains each issue and its
-# potential impact on users.
+# links, and problematic heading structures. The program explains each issue, its
+# potential impact on users, and provides a recommended fix.
 
 import requests
 from bs4 import BeautifulSoup
