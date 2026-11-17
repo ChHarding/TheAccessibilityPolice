@@ -223,6 +223,7 @@ if analyze:
                 element = html_module.escape(issue["element"])
                 wcag = issue["wcag"]
                 user_impact = issue["user_impact"]
+                recommended_fix = html_module.escape(issue["recommended_fix"])
                 issue_icon = issue_icons[issue_type]
 
                 issue_card = f"""
@@ -243,6 +244,9 @@ if analyze:
                 </div>
                 <div class="issue-description">
                     <strong>User Impact:</strong> {user_impact}
+                </div>
+                <div class="issue-description">
+                    <strong>Recommended Fix:</strong> {recommended_fix}
                 </div>
                 </div>
                 """
