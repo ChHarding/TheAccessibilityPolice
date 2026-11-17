@@ -2,6 +2,7 @@ import streamlit as st
 import accessibility_checker
 import html as html_module
 
+
 st.set_page_config(
     page_title="The Accessibility Police",
     page_icon="🔍",
@@ -50,42 +51,17 @@ st.markdown("""
 }
 .filter-title {
     font-size: 1.2rem;
-    font-weight: 600;
+    font-weight: 700;
     color: #172554;
-}
-.issue-card {
-    background-color: white;
-    border: 1px solid #dce2ed;
-    border-left: 3px solid #ff4b4b;
-    border-radius: 13px;
-    padding: 20px;
-    margin-bottom: 12px;
-    color: #172b4d;
-}
-.issue-card.medium {
-    border-left-color: #e6a23c;
-}
-.issue-card.low {
-    border-left-color: #16a36a;
 }
 .issue-heading {
     color: #172554;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 700;
     font-size: 1.3rem;
-    margin-bottom: 10px;
-}
-.issue-icon {
-    background-color: #f3f5fa;
-    border-radius: 8px;
-    padding: 8px;
-    font-size: 17px;
+    font-weight: 700;
 }
 .severity {
-    font-size: .8rem;
-    padding: 4px 8px;
+    font-size: 0.9rem;
+    padding: 5px 10px;
     border-radius: 20px;
     background-color: #fff0f0;
     color: #d93636;
@@ -99,21 +75,26 @@ st.markdown("""
     background-color: #e8f7ef;
     color: #16834f;
 }
-.issue-description {
-    color: #64748b;
-    font-size: 1.1rem;
-    margin-left: 50px;
+.material-icons {
+    font-family: 'Material Symbols Outlined';
+    font-size: 40px;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+}
+div[class*="st-key-issue-card-"] {
+    background-color: white;
+    border: 1px solid #dce2ed;
+    border-left: 4px solid #ef4444;
+    border-radius: 12px;
+    padding: 15px 20px;
     margin-bottom: 15px;
 }
-.issue-code {
-    background-color: #f3f5f9;
-    color: #344c78;
-    border-radius: 8px;
-    padding: 10px;
-    margin-left: 50px;
-    font-family: monospace;
-    font-size: 0.8rem;
-    overflow-wrap: anywhere;
+div[class*="st-key-issue-card-medium-"] {
+    border-left-color: #f59e0b;
+}
+div[class*="st-key-issue-card-low-"] {
+    border-left-color: #22c55e;
 }
 [data-testid="stVerticalBlock"] {
     gap: 0.7rem;
@@ -163,18 +144,20 @@ if analyze:
         "Incorrect heading structure",
         "Missing language attribute",
         "Empty heading",
-        "Empty button"
+        "Empty button",
+        "Missing table headers"
     ]   
 
     issue_icons = {
-        "Missing page title": "📃",
-        "Missing alt text": "🖼️",
-        "Form input without label": "🏷️",
-        "Empty link": "🔗",
-        "Incorrect heading structure": "📑",
-        "Missing language attribute": "🌐",
-        "Empty heading": "📝",
-        "Empty button": "🔘"
+        "Missing page title": ":material/description:",
+        "Missing alt text": ":material/image:",
+        "Form input without label": ":material/label:",
+        "Empty link": ":material/link:",
+        "Incorrect heading structure": ":material/account_tree:",
+        "Missing language attribute": ":material/translate:",
+        "Empty heading": ":material/title:",
+        "Empty button": ":material/radio_button_checked:",
+        "Missing table headers": ":material/rule:"
     }
 
     counts = {}
@@ -190,7 +173,7 @@ if analyze:
     with sidebar:
         with st.container(border=True, key="issue-container"):
             st.markdown(
-                '<div class="filter-title">ISSUES BY TYPE</div>',
+                '<div class="filter-title">Issues by Type</div>',
                 unsafe_allow_html=True
             )
             for category in categories:
@@ -215,42 +198,47 @@ if analyze:
                 """, unsafe_allow_html=True)
     with main:
         if results:
-            for issue in results:
-                severity = issue["severity"].lower()
+            for i, issue in enumerate(results):
 
+                severity = issue["severity"].lower()
                 issue_type = issue["type"]
                 description = issue["description"]
                 element = html_module.escape(issue["element"])
                 wcag = issue["wcag"]
                 user_impact = issue["user_impact"]
-                recommended_fix = html_module.escape(issue["recommended_fix"])
+                recommended_fix = issue["recommended_fix"]
                 issue_icon = issue_icons[issue_type]
 
-                issue_card = f"""
-                <div class="issue-card {severity}">
-                <div class="issue-heading">
-                    <span class="issue-icon">{issue_icon}</span>
-                    <span>{issue_type}</span>
-                    <span class="severity {severity}">{severity.upper()}</span>
-                </div>
-                <div class="issue-description">
-                    {description}
-                </div>
-                <div class="issue-code">
-                    {element}
-                </div>
-                <div class="issue-description" style="margin-top: 15px;">
-                    <strong>WCAG:</strong> {wcag}
-                </div>
-                <div class="issue-description">
-                    <strong>User Impact:</strong> {user_impact}
-                </div>
-                <div class="issue-description">
-                    <strong>Recommended Fix:</strong> {recommended_fix}
-                </div>
-                </div>
-                """
-                st.markdown(issue_card, unsafe_allow_html=True)
+                # Used Copilot to generate the following code snippet (card_key) for creating a unique key for each issue card,
+                # because I kept getting a Streamlit error about duplicate keys
+                card_key = f"issue-card-{i}"
+
+                with st.container(key=card_key):
+                    icon_column, heading_column, severity_column = st.columns([0.5, 9, 1])
+
+                    with icon_column:
+                        st.markdown(
+                            f'<span class="material-icons">{issue_icon}</span>',
+                            unsafe_allow_html=True
+                        )
+
+                    with heading_column:
+                        st.markdown(
+                            f'<span class="issue-heading">{issue_type}</span>',
+                            unsafe_allow_html=True
+                        )
+
+                    with severity_column:
+                        st.markdown(
+                            f'<span class="severity {severity}">{severity.upper()}</span>',
+                            unsafe_allow_html=True
+                        )
+
+                    st.write(description)
+                    st.code(element, language="html")
+                    st.markdown(f"**WCAG:** {wcag}")
+                    st.markdown(f"**User Impact:** {user_impact}")
+                    st.markdown(f"**Recommended Fix:** {recommended_fix}")
 
         else:
             st.info("No accessibility issues found.")
