@@ -1,3 +1,13 @@
+# The Accessibility Police
+# An Automated Website Accessibility Checker
+
+# This program analyzes a website's HTML to identify common accessibility issues
+# based on selected WCAG guidelines. It checks for issues like missing page titles, 
+# missing language information, missing image alt text, forms without labels, unclear
+# links, and problematic heading structures. The program explains each issue, its
+# potential impact on users, and provides a recommended fix.
+# Running this file will launch the Streamlit web app. 
+
 import streamlit as st
 import accessibility_checker
 import html as html_module
@@ -14,6 +24,7 @@ st.markdown("""
 .stApp {
     background-color: #F1F5F9;
 }
+/* Styling for the header/jumbron */
 .jumbotron {
     background-color: #172554;
     padding: 2rem;
@@ -31,12 +42,16 @@ st.markdown("""
     font-weight: 400;
     color: #ffffff;
     }
+
+/* Styling for the URL input and issue count containers */
 .st-key-url-container,
 .st-key-issue-container {
     background-color: #ffffff;
     padding: 1rem;
     border-radius: 0.5rem;
     }
+
+/* Styling for the analyze button */
 .stButton > button {
     background-color: #2563EB;
     color: #ffffff;
@@ -49,16 +64,22 @@ st.markdown("""
     color: #ffffff;
     border: none;
 }
+
+/* Styling for the Issues by Type header */
 .filter-title {
     font-size: 1.2rem;
     font-weight: 700;
     color: #172554;
 }
+
+/* Styling for the issue cards */
 .issue-heading {
     color: #172554;
     font-size: 1.3rem;
     font-weight: 700;
 }
+
+/* Styling for the severity labels */
 .severity {
     font-size: 0.9rem;
     padding: 5px 10px;
@@ -75,6 +96,8 @@ st.markdown("""
     background-color: #e8f7ef;
     color: #16834f;
 }
+
+/* Styling for the issue card icons */
 .material-icons {
     font-family: 'Material Symbols Outlined';
     font-size: 40px;
@@ -82,6 +105,8 @@ st.markdown("""
     font-style: normal;
     line-height: 1;
 }
+
+/* Styling for the issue cards */
 div[class*="st-key-issue-card-"] {
     background-color: white;
     border: 1px solid #dce2ed;
@@ -96,16 +121,12 @@ div[class*="st-key-issue-card-medium-"] {
 div[class*="st-key-issue-card-low-"] {
     border-left-color: #22c55e;
 }
+
+/* Adjust the gap between the cards */
 [data-testid="stVerticalBlock"] {
     gap: 0.7rem;
 }
-[data-testid="column"] {
-    text-align: center;
-    }
-[data-testid="stAlert"] {
-    text-align: center;
-    margin-bottom: -20px;
-    }
+
 </style>
 """, unsafe_allow_html=True
 )
@@ -117,6 +138,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# URL Input Container
 with st.container(border=True, key="url-container"):
     st.markdown("Enter a website URL:")
     url = st.text_input("Website URL", placeholder="https://example.com", label_visibility="collapsed", key="url_input")
@@ -125,6 +147,7 @@ with st.container(border=True, key="url-container"):
         use_container_width=True
 )
 
+# Analyze the website when the button is clicked
 if analyze:
     html = accessibility_checker.get_webpage(url)
 
@@ -136,6 +159,7 @@ if analyze:
     soup = accessibility_checker.parse_html(html)
     results = accessibility_checker.analyze_page(soup)
 
+    # Define the issue categories and their corresponding icons
     categories = [
         "Missing page title",
         "Missing alt text",
@@ -160,6 +184,7 @@ if analyze:
         "Missing table headers": ":material/rule:"
     }
 
+    # Count the number of issues for each category
     counts = {}
     for category in categories:
         count = 0
@@ -170,6 +195,7 @@ if analyze:
 
     sidebar, main = st.columns([1, 4])
 
+    # Display the issue by type counts in the sidebar
     with sidebar:
         with st.container(border=True, key="issue-container"):
             st.markdown(
@@ -196,10 +222,11 @@ if analyze:
                         ">{count}</span>
                     </div>
                 """, unsafe_allow_html=True)
+    
+    # Display the detailed issues in the main area
     with main:
         if results:
             for i, issue in enumerate(results):
-
                 severity = issue["severity"].lower()
                 issue_type = issue["type"]
                 description = issue["description"]
@@ -221,25 +248,21 @@ if analyze:
                             f'<span class="material-icons">{issue_icon}</span>',
                             unsafe_allow_html=True
                         )
-
                     with heading_column:
                         st.markdown(
                             f'<span class="issue-heading">{issue_type}</span>',
                             unsafe_allow_html=True
                         )
-
                     with severity_column:
                         st.markdown(
                             f'<span class="severity {severity}">{severity.upper()}</span>',
                             unsafe_allow_html=True
                         )
-
                     st.write(description)
                     st.code(element, language="html")
                     st.markdown(f"**WCAG:** {wcag}")
                     st.markdown(f"**User Impact:** {user_impact}")
                     st.markdown(f"**Recommended Fix:** {recommended_fix}")
-
         else:
             st.info("No accessibility issues found.")
 

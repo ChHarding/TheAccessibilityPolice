@@ -54,6 +54,7 @@ def parse_html(html):
 
 def check_page_title(soup):
     # Check for a non-empty <title> (WCAG 2.4.2)
+    # Success Criterion 2.4.2: Web pages have titles that describe topic or purpose.
     
     issues = []
     title = soup.find('title')
