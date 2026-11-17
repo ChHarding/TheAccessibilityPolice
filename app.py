@@ -30,14 +30,12 @@ st.markdown("""
     font-weight: 400;
     color: #ffffff;
     }
-
 .st-key-url-container,
 .st-key-issue-container {
     background-color: #ffffff;
     padding: 1rem;
     border-radius: 0.5rem;
     }
-
 .stButton > button {
     background-color: #2563EB;
     color: #ffffff;
@@ -45,19 +43,16 @@ st.markdown("""
     border-radius: 8px;
     font-weight: 600;
 }
-
 .stButton > button:hover {
     background-color: #1D4ED8;
     color: #ffffff;
     border: none;
 }
-    
 .filter-title {
     font-size: 1.2rem;
     font-weight: 600;
     color: #172554;
 }
-
 .issue-card {
     background-color: white;
     border: 1px solid #dce2ed;
@@ -67,15 +62,12 @@ st.markdown("""
     margin-bottom: 12px;
     color: #172b4d;
 }
-
 .issue-card.medium {
     border-left-color: #e6a23c;
 }
-
 .issue-card.low {
     border-left-color: #16a36a;
 }
-
 .issue-heading {
     color: #172554;
     display: flex;
@@ -85,14 +77,12 @@ st.markdown("""
     font-size: 1.3rem;
     margin-bottom: 10px;
 }
-
 .issue-icon {
     background-color: #f3f5fa;
     border-radius: 8px;
     padding: 8px;
     font-size: 17px;
 }
-
 .severity {
     font-size: .8rem;
     padding: 4px 8px;
@@ -101,24 +91,20 @@ st.markdown("""
     color: #d93636;
     font-weight: 700;
 }
-
 .severity.medium {
     background-color: #fff5e5;
     color: #b7791f;
 }
-
 .severity.low {
     background-color: #e8f7ef;
     color: #16834f;
 }
-
 .issue-description {
     color: #64748b;
     font-size: 1.1rem;
     margin-left: 50px;
     margin-bottom: 15px;
 }
-
 .issue-code {
     background-color: #f3f5f9;
     color: #344c78;
@@ -126,28 +112,22 @@ st.markdown("""
     padding: 10px;
     margin-left: 50px;
     font-family: monospace;
-    font-size: 11px;
+    font-size: 0.8rem;
     overflow-wrap: anywhere;
 }
-
 [data-testid="stVerticalBlock"] {
     gap: 0.7rem;
 }
-
 [data-testid="column"] {
     text-align: center;
     }
-
-    
 [data-testid="stAlert"] {
     text-align: center;
     margin-bottom: -20px;
     }
-
 </style>
 """, unsafe_allow_html=True
 )
-
 
 st.markdown("""
 <div class="jumbotron">
@@ -156,12 +136,9 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-
 with st.container(border=True, key="url-container"):
     st.markdown("Enter a website URL:")
     url = st.text_input("Website URL", placeholder="https://example.com", label_visibility="collapsed", key="url_input")
-
-
     analyze = st.button(
         ":material/search: Analyze Website",
         use_container_width=True
@@ -178,7 +155,6 @@ if analyze:
     soup = accessibility_checker.parse_html(html)
     results = accessibility_checker.analyze_page(soup)
 
-        
     categories = [
         "Missing page title",
         "Missing alt text",
@@ -217,10 +193,8 @@ if analyze:
                 '<div class="filter-title">ISSUES BY TYPE</div>',
                 unsafe_allow_html=True
             )
-
             for category in categories:
                 count = counts[category]
-
                 st.markdown(f"""
                     <div style="
                         display: flex;
@@ -239,11 +213,9 @@ if analyze:
                         ">{count}</span>
                     </div>
                 """, unsafe_allow_html=True)
-
     with main:
         if results:
             for issue in results:
-
                 severity = issue["severity"].lower()
 
                 issue_type = issue["type"]
@@ -260,19 +232,15 @@ if analyze:
                     <span>{issue_type}</span>
                     <span class="severity {severity}">{severity.upper()}</span>
                 </div>
-
                 <div class="issue-description">
                     {description}
                 </div>
-
                 <div class="issue-code">
                     {element}
                 </div>
-
                 <div class="issue-description" style="margin-top: 15px;">
                     <strong>WCAG:</strong> {wcag}
                 </div>
-
                 <div class="issue-description">
                     <strong>User Impact:</strong> {user_impact}
                 </div>
