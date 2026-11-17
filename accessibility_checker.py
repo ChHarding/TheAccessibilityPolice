@@ -246,7 +246,49 @@ def check_empty_buttons(soup):
             "wcag": "4.1.2",
             "recommended_fix": "Add text to the button so users know what it does. You can also give it an accessible name if the button uses an icon instead."
         })
+    return issues
 
+def check_table_headers(soup):
+    # Check for tables missing headers (WCAG 1.3.1)
+    # Success Criterion 1.3.1: Information, structure, and relationships conveyed through presentation can be programmatically determined or are available in text.
+    tables = soup.find_all('table')    
+    issues = []
+
+    for table in tables:
+
+        # These skips tables that don't have text (probably used for layout purposes)
+        table_text = table.get_text(strip=True)
+        if not table_text:
+            continue
+        if table.find('img') and not table.find('th'):
+            continue
+
+        # Skips tables that have form elements
+        if table.find(['input', 'button', 'select', 'textarea']):
+            continue
+
+        # Skips tables that only have one cell
+        rows = table.find_all('tr')
+        single_cell = True
+        for row in rows:
+            cells = row.find_all(['td', 'th'])
+            if len(cells) > 1:
+                single_cell = False
+        if single_cell:
+            continue
+
+        headers = table.find_all('th')
+
+        if not headers:
+            issues.append({
+                "type": "Missing table headers",
+                "severity": "Medium",
+                "element": str(table),
+                "description": "This table doesn't appear to have any header cells.",
+                "user_impact": "Users who rely on screen readers might have difficulty understanding what the information in each row or column represents.",
+                "wcag": "1.3.1",
+                "recommended_fix": "Add header cells using the <th> element to the table to provide headers for each column or row."
+            })
     return issues
 
 
@@ -262,6 +304,7 @@ def analyze_page(soup):
     issues.extend(check_language(soup))
     issues.extend(check_empty_headings(soup))
     issues.extend(check_empty_buttons(soup))
+    issues.extend(check_table_headers(soup))
     return issues
 
 def summarize_results(results):
@@ -285,6 +328,7 @@ def summarize_results(results):
     missing_language_attribute = 0
     empty_headings = 0
     empty_buttons = 0
+    missing_table_headers = 0
 
     for issue in results:
         if issue['type'] == "Missing page title":
