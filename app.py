@@ -211,7 +211,7 @@ if analyze:
 
                 # Used Copilot to generate the following code snippet (card_key) for creating a unique key for each issue card,
                 # because I kept getting a Streamlit error about duplicate keys
-                card_key = f"issue-card-{i}"
+                card_key = f"issue-card-{severity}-{i}"
 
                 with st.container(key=card_key):
                     icon_column, heading_column, severity_column = st.columns([0.5, 9, 1])
