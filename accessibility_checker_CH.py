@@ -12,6 +12,14 @@ from bs4 import BeautifulSoup
 from fast_a11y import fast_a11y
 
 # put the URLs of your test bad sites here:
+# https://www.fake-university.com/
+# https://www.w3.org/WAI/demos/bad/before/home.html
+# https://de.torontomu.ca/wa/lulu/
+# https://projects.accesscomputing.uw.edu/au/before.html
+# https://openassessittoolkit.github.io/accessible_u/before_u.html
+# https://pandasaurusgames.com/
+
+
 
 
 # CH
